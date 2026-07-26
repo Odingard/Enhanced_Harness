@@ -16,6 +16,9 @@ produces oracle-**CONFIRMED** findings (O1 canary_match) against:
 
 - local vulnerable MCP + LLM API fixtures
 - local **vulnerable AI chat page** fixture (Playwright, allowlisted chat box)
+- local **OWASP FinBot CTF** (Juice Shop for Agentic AI) via Docker
+
+Visuals: [`docs/VISUALS.md`](docs/VISUALS.md) · FinBot lab: [`docs/FINBOT_LAB.md`](docs/FINBOT_LAB.md)
 
 ## Install
 
@@ -60,13 +63,25 @@ One-shot acceptance for the chat page:
 ./scripts/run_vulnerable_page_acceptance.sh
 ```
 
+### OWASP FinBot CTF (Juice Shop for Agentic AI)
+
+```bash
+export OPENAI_API_KEY=sk-...   # needed for live AI-agent challenges
+./scripts/lab_finbot_up.sh     # http://127.0.0.1:8000/
+# uses Docker Compose when healthy; falls back to native uv+Redis otherwise
+# complete FinBot signup/onboarding in the browser, open Vendor AI Assistant
+cp scope.finbot.example.json scope.json
+# set engagement canaries; keep ROE/allowlist honest
+.venv/bin/harness start --scope scope.json
+./scripts/lab_finbot_down.sh
+```
+
+Fair use only — this repo does **not** encode FinBot challenges, flags, or walkthroughs.
+See [`docs/FINBOT_LAB.md`](docs/FINBOT_LAB.md) · visuals [`docs/VISUALS.md`](docs/VISUALS.md).
+
 Requires `flags.enable_agent_chat_ui: true` and an allowlisted
 `targets.agent_chat_ui[]` entry with chat selectors. This is **not** a generic
 web XSS/SQLi pack — only the configured chat box.
-
-For an external authorized vulnerable AI page, point `targets.agent_chat_ui[0].url`
-(and selectors) at that page, keep the host in `allowlist.hosts`, and set your
-own canaries for oracle proof.
 
 ## Multi-agent roster
 

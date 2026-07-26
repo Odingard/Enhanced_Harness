@@ -13,3 +13,8 @@ scope.json
 .DS_Store
 .coverage
 htmlcov/
+# Cloned external lab target (OWASP FinBot CTF) — do not vendor
+labs/finbot-ctf/
+labs/**/.env
+labs/*.pid
+labs/*.log

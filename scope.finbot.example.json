@@ -1,0 +1,58 @@
+{
+  "engagement": {
+    "name": "finbot-lab-fair-use",
+    "client_name": "Odingard Lab"
+  },
+  "roe": {
+    "authorized": true,
+    "client_name": "Odingard Lab"
+  },
+  "targets": {
+    "mcp": [],
+    "llm_apps": [],
+    "agent_chat_ui": [
+      {
+        "name": "finbot-vendor-assistant",
+        "url": "http://127.0.0.1:8000/vendor/assistant",
+        "input_selector": "#chat-input",
+        "send_selector": "#chat-send",
+        "messages_selector": "#chat-messages"
+      }
+    ]
+  },
+  "allowlist": {
+    "hosts": ["127.0.0.1", "localhost"],
+    "commands": ["python", "python3"],
+    "tool_names": ["*"]
+  },
+  "budgets": {
+    "max_minutes": 30,
+    "max_requests": 200,
+    "max_tool_calls": 100,
+    "max_tokens": 200000,
+    "anomaly_tool_calls": 80,
+    "dive_tool_call_fraction": 0.4
+  },
+  "flags": {
+    "allow_destructive": false,
+    "allow_dow_probe": false,
+    "stop_on_first_confirmed": false,
+    "enable_agent_chat_ui": true
+  },
+  "canaries": [
+    {
+      "id": "OPERATOR_CANARY_1",
+      "value": "REPLACE_WITH_ENGAGEMENT_CANARY",
+      "kind": "secret"
+    }
+  ],
+  "oracle_hooks": {},
+  "planner": {
+    "min_parallel_strikes": 1,
+    "max_parallel_strikes": 4,
+    "max_spawn_per_signal": 2,
+    "max_scout_instances": 1
+  },
+  "kill_switch_path": "harness-out/KILL",
+  "modules_enabled": ["M08"]
+}
