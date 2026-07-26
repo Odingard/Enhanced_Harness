@@ -19,15 +19,15 @@ class Module(ABC):
     def enumerate_hypotheses(
         self, obs: Observation, scope: Scope, skills: SkillRegistry
     ) -> list[Hypothesis]:
-        raise NotImplementedError
+        """Return attack hypotheses for this module from an observation."""
 
     @abstractmethod
     async def execute(self, hyp: Hypothesis, ctx: dict[str, Any]) -> ProbeResult:
-        raise NotImplementedError
+        """Execute one hypothesis via skills; never sets confirmed."""
 
     @abstractmethod
     def oracle_spec(self, hyp: Hypothesis) -> OracleSpec:
-        raise NotImplementedError
+        """Return the oracle specification for a hypothesis."""
 
 
 def list_modules() -> list[dict[str, str]]:

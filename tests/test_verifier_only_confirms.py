@@ -19,10 +19,11 @@ def test_strike_source_never_assigns_confirmed() -> None:
 
 
 def test_verifier_is_only_confirm_writer() -> None:
+    """Only verifier.py may assign FindingStatus.CONFIRMED (others may compare)."""
     agents = Path("enhanced_harness/agents")
-    confirmed_files = []
+    writers = []
     for p in agents.glob("*.py"):
         text = p.read_text(encoding="utf-8")
-        if "FindingStatus.CONFIRMED" in text or 'status = FindingStatus.CONFIRMED' in text:
-            confirmed_files.append(p.name)
-    assert confirmed_files == ["verifier.py"]
+        if "status = FindingStatus.CONFIRMED" in text:
+            writers.append(p.name)
+    assert writers == ["verifier.py"]
