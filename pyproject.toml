@@ -1,0 +1,62 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "enhanced-harness"
+version = "0.1.0"
+description = "Enhanced Harness — Shannon-class multi-agent red team for Agentic AI / MCP"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "Proprietary" }
+authors = [{ name = "Odingard Security" }]
+dependencies = [
+  "mcp>=1.0,<2",
+  "httpx>=0.27",
+  "pydantic>=2.7",
+  "pydantic-settings>=2.2",
+  "typer>=0.12",
+  "rich>=13.7",
+  "pyyaml>=6.0",
+  "uvicorn>=0.30",
+  "starlette>=0.37",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.2",
+  "pytest-asyncio>=0.23",
+]
+chat = [
+  "playwright>=1.44",
+]
+# Convenience: install everything needed for lab page testing
+lab = [
+  "pytest>=8.2",
+  "pytest-asyncio>=0.23",
+  "playwright>=1.44",
+]
+
+[project.scripts]
+harness = "enhanced_harness.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["enhanced_harness"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+markers = [
+  "live: live network tests (require HARNESS_LIVE=1)",
+]
+filterwarnings = [
+  "ignore::DeprecationWarning",
+]
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "enhanced_harness",
+  "skills",
+  "scripts",
+  "scope.example.json",
+  "README.md",
+]

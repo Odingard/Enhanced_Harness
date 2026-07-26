@@ -1,0 +1,62 @@
+{
+  "engagement": {
+    "name": "example-lab",
+    "client_name": "Example Client"
+  },
+  "roe": {
+    "authorized": true,
+    "client_name": "Example Client"
+  },
+  "targets": {
+    "mcp": [
+      {
+        "name": "lab-mcp",
+        "transport": "stdio",
+        "command": ["python", "-m", "tests.fixtures.mcp.vulnerable_server"],
+        "cwd": "."
+      }
+    ],
+    "llm_apps": [
+      {
+        "name": "lab-llm",
+        "base_url": "http://127.0.0.1:8765",
+        "chat_path": "/v1/chat"
+      }
+    ]
+  },
+  "allowlist": {
+    "hosts": ["127.0.0.1", "localhost"],
+    "commands": ["python", "python3"],
+    "tool_names": ["*"]
+  },
+  "budgets": {
+    "max_minutes": 10,
+    "max_requests": 200,
+    "max_tool_calls": 100,
+    "max_tokens": 100000,
+    "anomaly_tool_calls": 50,
+    "dive_tool_call_fraction": 0.4
+  },
+  "flags": {
+    "allow_destructive": false,
+    "allow_dow_probe": false,
+    "stop_on_first_confirmed": true,
+    "enable_agent_chat_ui": false
+  },
+  "canaries": [
+    {
+      "id": "CANARY_SECRET_A",
+      "value": "HARNESS_CANARY_EXFIL_OK_42",
+      "kind": "secret"
+    }
+  ],
+  "oracle_hooks": {},
+  "planner": {
+    "min_parallel_strikes": 1,
+    "max_parallel_strikes": 4,
+    "max_spawn_per_signal": 2,
+    "max_scout_instances": 1
+  },
+  "kill_switch_path": "harness-out/KILL",
+  "modules_enabled": ["M08"]
+}
