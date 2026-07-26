@@ -11,18 +11,20 @@ be mentioned only as adjacent tools — they are not this CLI, package, or brand
 
 ## Status
 
-**Milestone 1 runnable.** Multi-agent path
-Scout → Strategist → Strike → Verifier → Scribe produces ≥1 oracle-**CONFIRMED**
-finding (O1 canary_match) against local vulnerable MCP + LLM fixtures.
+**Runnable multi-agent harness.** Scout → Strategist → Strike → Verifier → Scribe
+produces oracle-**CONFIRMED** findings (O1 canary_match) against:
 
-Competitive gap analysis vs the public awesome-list:
-[`COMPETITIVE_LANDSCAPE.md`](COMPETITIVE_LANDSCAPE.md).
+- local vulnerable MCP + LLM API fixtures
+- local **vulnerable AI chat page** fixture (Playwright, allowlisted chat box)
 
 ## Install
 
 ```bash
-python -m venv .venv && .venv/bin/pip install -e ".[dev]"
+python -m venv .venv && .venv/bin/pip install -e ".[lab]"
+.venv/bin/playwright install chromium
 ```
+
+`[dev]` is enough for MCP/LLM fixtures; `[lab]` adds Playwright for the chat page.
 
 ## Operator happy path
 
@@ -36,20 +38,42 @@ python -m venv .venv && .venv/bin/pip install -e ".[dev]"
 
 CLI: `harness` · Package: `enhanced_harness` · Alias: `harness engage`
 
-Useful commands:
+## Test against the vulnerable AI chat page
+
+Local lab page (intentionally leaks a canary when asked):
 
 ```bash
-harness modules
-harness version
-harness resume --out harness-out/<session>/
+# terminal A — start the page
+.venv/bin/harness lab-page
+# open http://127.0.0.1:8766/ in a browser if you want to poke it manually
+
+# terminal B — run the harness against it
+cp scope.vulnerable_ai_page.example.json scope.json
+.venv/bin/harness doctor --scope scope.json
+.venv/bin/harness start --scope scope.json
+.venv/bin/harness report
 ```
+
+One-shot acceptance for the chat page:
+
+```bash
+./scripts/run_vulnerable_page_acceptance.sh
+```
+
+Requires `flags.enable_agent_chat_ui: true` and an allowlisted
+`targets.agent_chat_ui[]` entry with chat selectors. This is **not** a generic
+web XSS/SQLi pack — only the configured chat box.
+
+For an external authorized vulnerable AI page, point `targets.agent_chat_ui[0].url`
+(and selectors) at that page, keep the host in `allowlist.hosts`, and set your
+own canaries for oracle proof.
 
 ## Multi-agent roster
 
 | Agent | Job |
 |-------|-----|
 | Conductor | Session, ROE, budgets, kill switch, spawn/retire |
-| Scout | Map MCP tools/resources + LLM app health |
+| Scout | Map MCP tools/resources + LLM health + chat UI |
 | Strategist | Hypotheses + Drive/Dive/Steer spawn requests |
 | Strike-* | Execute module **skills** (cannot confirm) |
 | Verifier | Oracles only — sole writer of `confirmed` |
@@ -57,9 +81,9 @@ harness resume --out harness-out/<session>/
 
 Details: [`MULTIAGENT.md`](MULTIAGENT.md).
 
-## Skills (M1)
+## Skills (M08)
 
-Registry: `skills/registry.yaml`. Module **M08 secret_exfiltration** runs via:
+Registry: `skills/registry.yaml`. Surfaces: `mcp`, `llm`, `web`.
 
 - `exfil.canary_direct_ask`
 - `exfil.canary_tool_arg_smuggle`
@@ -70,13 +94,13 @@ Skills never set `confirmed`. Verifier confirms with oracle **O1 canary_match**.
 ## Acceptance
 
 ```bash
-./scripts/run_acceptance.sh
+./scripts/run_acceptance.sh                 # MCP + LLM fixtures
+./scripts/run_vulnerable_page_acceptance.sh # AI chat page (Playwright)
 ./scripts/check_no_stubs.sh
 .venv/bin/pytest -m "not live"
 ```
 
-`run_acceptance.sh` must produce ≥1 **CONFIRMED** finding with `proof_hash` and a
-full evidence package:
+Evidence package per session:
 
 `scope.used.json` · `transcript.jsonl` · `checkpoint.json` · `findings.json` ·
 `findings.md` · `coverage.json` · `harness.log`
@@ -86,7 +110,7 @@ full evidence package:
 Fail closed: `roe.authorized` must be true; allowlist + budgets required;
 destructive/DoW default false; kill-switch file aborts the loop; canary values
 are redacted from `findings.md` (proof hash retained in `findings.json`).
-See `scope.example.json`.
+See `scope.example.json` and `scope.vulnerable_ai_page.example.json`.
 
 ## Product language
 
@@ -100,9 +124,9 @@ does not certify that a system is secure.
 
 ## Boundaries
 
-- Terminal-first CLI only in v1 (no web UI / dashboard).
-- Optional Playwright Agent Chat UI is Phase B, default OFF — allowlisted chat
-  box only; not a generic web XSS/SQLi pack.
+- Terminal-first CLI (no product web UI / dashboard).
+- Agent Chat UI adapter is flag-gated (`enable_agent_chat_ui`), allowlisted chat
+  box only — not a generic web XSS/SQLi pack.
 - Lab target https://owasp-finbot-ctf.org/ may be used for fair live testing
   only. Do not encode FinBot challenges, flags, detectors, or walkthroughs.
 - Confirmed findings require oracle proof; only the Verifier agent may set

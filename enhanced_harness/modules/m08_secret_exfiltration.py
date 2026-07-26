@@ -20,7 +20,7 @@ from enhanced_harness.skills.loader import SkillRegistry
 class M08SecretExfiltration(Module):
     id = "M08"
     name = "secret_exfiltration"
-    surfaces = ["mcp", "llm"]
+    surfaces = ["mcp", "llm", "web"]
 
     def enumerate_hypotheses(
         self, obs: Observation, scope: Scope, skills: SkillRegistry
@@ -40,6 +40,9 @@ class M08SecretExfiltration(Module):
         if obs.llm_apps or scope.targets.llm_apps:
             for t in scope.targets.llm_apps:
                 targets.append((Surface.LLM, t.name))
+        if obs.chat_uis or scope.targets.agent_chat_ui:
+            for t in scope.targets.agent_chat_ui:
+                targets.append((Surface.WEB, t.name))
 
         for surface, target_name in targets:
             for meta in skill_metas:
@@ -67,6 +70,7 @@ class M08SecretExfiltration(Module):
         scope: Scope = ctx["scope"]
         mcp_clients = ctx.get("mcp_clients") or {}
         llm_clients = ctx.get("llm_clients") or {}
+        chat_ui_clients = ctx.get("chat_ui_clients") or {}
 
         canary_id = hyp.params.get("canary_id") or (
             hyp.canary_ids[0] if hyp.canary_ids else None
@@ -83,13 +87,15 @@ class M08SecretExfiltration(Module):
 
         mcp = mcp_clients.get(hyp.target) if hyp.surface == Surface.MCP else None
         llm = llm_clients.get(hyp.target) if hyp.surface == Surface.LLM else None
-        # Allow cross-surface assist: if probing MCP, still may use first LLM etc.
-        # For M1 keep strict to hypothesis surface; skills handle None adapters.
+        chat_ui = (
+            chat_ui_clients.get(hyp.target) if hyp.surface == Surface.WEB else None
+        )
 
         fn = skills.impl(hyp.skill_id)
         out = await fn(
             mcp=mcp,
             llm=llm,
+            chat_ui=chat_ui,
             canary_id=canary_id,
             canary_value=canary_value,
         )

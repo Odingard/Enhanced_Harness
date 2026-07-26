@@ -35,9 +35,20 @@ class LLMTarget(BaseModel):
     headers: dict[str, str] = Field(default_factory=dict)
 
 
+class AgentChatUITarget(BaseModel):
+    """Allowlisted AI chat page (Playwright). Not a generic web vuln target."""
+
+    name: str
+    url: str
+    input_selector: str = "#chat-input"
+    send_selector: str = "#send-btn"
+    messages_selector: str = "#messages"
+
+
 class Targets(BaseModel):
     mcp: list[MCPTarget] = Field(default_factory=list)
     llm_apps: list[LLMTarget] = Field(default_factory=list)
+    agent_chat_ui: list[AgentChatUITarget] = Field(default_factory=list)
 
 
 class Allowlist(BaseModel):
@@ -115,8 +126,19 @@ class Scope(BaseModel):
             raise ValueError("budgets.max_requests must be > 0")
         if self.budgets.max_tool_calls <= 0:
             raise ValueError("budgets.max_tool_calls must be > 0")
-        if not self.targets.mcp and not self.targets.llm_apps:
-            raise ValueError("at least one MCP or LLM target is required")
+        has_target = bool(
+            self.targets.mcp
+            or self.targets.llm_apps
+            or self.targets.agent_chat_ui
+        )
+        if not has_target:
+            raise ValueError(
+                "at least one MCP, LLM, or agent_chat_ui target is required"
+            )
+        if self.targets.agent_chat_ui and not self.flags.enable_agent_chat_ui:
+            raise ValueError(
+                "targets.agent_chat_ui present but flags.enable_agent_chat_ui is false"
+            )
         return self
 
     def canary_map(self) -> dict[str, str]:

@@ -27,6 +27,15 @@ dev = [
   "pytest>=8.2",
   "pytest-asyncio>=0.23",
 ]
+chat = [
+  "playwright>=1.44",
+]
+# Convenience: install everything needed for lab page testing
+lab = [
+  "pytest>=8.2",
+  "pytest-asyncio>=0.23",
+  "playwright>=1.44",
+]
 
 [project.scripts]
 harness = "enhanced_harness.cli:app"

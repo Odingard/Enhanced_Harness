@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from urllib.parse import urlparse
 
-from enhanced_harness.scope import Allowlist, MCPTarget, Scope
+from enhanced_harness.scope import AgentChatUITarget, Allowlist, MCPTarget, Scope
 
 
 class SafetyError(RuntimeError):
@@ -60,6 +60,19 @@ def assert_url_allowed(url: str, scope: Scope) -> None:
         raise SafetyError(f"Host not allowlisted: {host}")
 
 
+def assert_chat_ui_allowed(target: AgentChatUITarget, scope: Scope) -> None:
+    if not scope.flags.enable_agent_chat_ui:
+        raise SafetyError("flags.enable_agent_chat_ui must be true for chat UI targets")
+    assert_url_allowed(target.url, scope)
+    for sel_name, sel in (
+        ("input_selector", target.input_selector),
+        ("send_selector", target.send_selector),
+        ("messages_selector", target.messages_selector),
+    ):
+        if not sel or not sel.strip():
+            raise SafetyError(f"agent_chat_ui.{sel_name} is required")
+
+
 def doctor_checks(scope: Scope) -> list[str]:
     """Return human-readable issues; empty means OK."""
     issues: list[str] = []
@@ -79,6 +92,11 @@ def doctor_checks(scope: Scope) -> list[str]:
     for t in scope.targets.llm_apps:
         try:
             assert_url_allowed(t.base_url, scope)
+        except SafetyError as e:
+            issues.append(str(e))
+    for t in scope.targets.agent_chat_ui:
+        try:
+            assert_chat_ui_allowed(t, scope)
         except SafetyError as e:
             issues.append(str(e))
     return issues

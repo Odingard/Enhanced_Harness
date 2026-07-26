@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
+from enhanced_harness.adapters.agent_chat_ui import AgentChatUIAdapter
 from enhanced_harness.adapters.llm_app import LLMAppAdapter
 from enhanced_harness.adapters.mcp_client import MCPClientAdapter
 from enhanced_harness.agents.bus import AgentBus
@@ -42,6 +43,7 @@ class Conductor:
         self.modules = {m.id: m for m in self.modules_list}
         self.mcp_clients: dict[str, MCPClientAdapter] = {}
         self.llm_clients: dict[str, LLMAppAdapter] = {}
+        self.chat_ui_clients: dict[str, AgentChatUIAdapter] = {}
         self.live_strikes = 0
         self._strike_seq = 0
         self.scribe = Scribe(self.bus, scope, self.evidence, self.checkpoint)
@@ -59,11 +61,17 @@ class Conductor:
             client = LLMAppAdapter(t, self.scope)
             await client.connect()
             self.llm_clients[t.name] = client
+        for t in self.scope.targets.agent_chat_ui:
+            client = AgentChatUIAdapter(t, self.scope)
+            await client.connect()
+            self.chat_ui_clients[t.name] = client
 
     async def _close_targets(self) -> None:
         for c in self.mcp_clients.values():
             await c.close()
         for c in self.llm_clients.values():
+            await c.close()
+        for c in self.chat_ui_clients.values():
             await c.close()
 
     def _spawn_strike(self, pinned_skills: list[str] | None = None) -> Strike | None:
@@ -80,6 +88,7 @@ class Conductor:
             "scope": self.scope,
             "mcp_clients": self.mcp_clients,
             "llm_clients": self.llm_clients,
+            "chat_ui_clients": self.chat_ui_clients,
         }
         strike = Strike(
             strike_id=strike_id,
@@ -114,6 +123,7 @@ class Conductor:
                 evidence=self.evidence,
                 mcp_clients=self.mcp_clients,
                 llm_clients=self.llm_clients,
+                chat_ui_clients=self.chat_ui_clients,
             )
             self.checkpoint.phase = "scout"
             obs = await scout.run()

@@ -201,6 +201,24 @@ def version() -> None:
     typer.echo("Package: enhanced_harness")
 
 
+@app.command("lab-page")
+def lab_page(
+    host: str = typer.Option("127.0.0.1", "--host"),
+    port: int = typer.Option(8766, "--port"),
+) -> None:
+    """Start the local vulnerable AI chat PAGE fixture for lab testing."""
+    import os
+
+    os.environ["HARNESS_CHAT_HOST"] = host
+    os.environ["HARNESS_CHAT_PORT"] = str(port)
+    typer.echo(f"Starting vulnerable AI chat page on http://{host}:{port}/")
+    typer.echo("Scope example: scope.vulnerable_ai_page.example.json")
+    typer.echo("Stop with Ctrl+C")
+    from tests.fixtures.vulnerable_ai_page.server import main as page_main
+
+    page_main()
+
+
 # Typer app callable for console_scripts
 def main() -> None:
     app()

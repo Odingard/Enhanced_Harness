@@ -83,6 +83,7 @@ class Observation(BaseModel):
     mcp_tools: list[dict[str, Any]] = Field(default_factory=list)
     mcp_resources: list[dict[str, Any]] = Field(default_factory=list)
     llm_apps: list[dict[str, Any]] = Field(default_factory=list)
+    chat_uis: list[dict[str, Any]] = Field(default_factory=list)
     notes: list[str] = Field(default_factory=list)
 
 
